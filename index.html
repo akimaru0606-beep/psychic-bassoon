@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>九九表</title>
+    <title>九九マスターへの道</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
@@ -43,29 +43,84 @@
             justify-content: center;
             font-weight: 700;
             padding: 0.75rem 0;
+            cursor: pointer;
             user-select: none;
+            transition: transform 0.1s ease, background-color 0.2s ease;
+        }
+        .grid-cell:hover {
+            transform: scale(1.05);
+            background-color: #e2e8f0;
         }
         .header-cell {
             background-color: #4a5568;
             color: #ffffff;
+        }
+        .problem-display {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        .answer-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 0.75rem;
+            font-size: 1.25rem;
+            text-align: center;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .answer-input:focus {
+            outline: none;
+            border-color: #4299e1;
+        }
+        .result-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            min-height: 2rem;
+        }
+        .correct {
+            color: #2f855a;
+        }
+        .incorrect {
+            color: #e53e3e;
         }
     </style>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
 <div class="container mx-auto p-8 bg-white rounded-2xl shadow-xl flex flex-col items-center">
-    <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-6">九九表</h1>
-    <p class="text-lg sm:text-xl text-gray-600 mb-8">九九の答えをチェックしましょう。</p>
+    <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-6">九九マスターへの道</h1>
+    <p class="text-lg sm:text-xl text-gray-600 mb-8">九九を楽しく覚えよう！下の表をクリックするか、練習モードに挑戦しよう！</p>
 
     <!-- 九九表 -->
-    <div class="mb-10 w-full">
+    <div class="mb-16 w-full">
+        <h2 class="text-3xl font-bold text-gray-700 mb-4">九九表</h2>
         <div id="multiplication-table" class="grid-container"></div>
+    </div>
+
+    <!-- 練習モード -->
+    <div class="mb-10 w-full">
+        <h2 class="text-3xl font-bold text-gray-700 mb-4">練習モード</h2>
+        <div class="flex flex-col items-center space-y-4">
+            <div id="problem-display" class="problem-display"></div>
+            <input type="number" id="answer-input" class="answer-input" placeholder="答えを入力" onkeypress="handleKeyPress(event)">
+            <div id="result-message" class="result-message"></div>
+            <button id="next-button" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-200 transform hover:scale-105">次の問題</button>
+        </div>
     </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const tableContainer = document.getElementById('multiplication-table');
+        const problemDisplay = document.getElementById('problem-display');
+        const answerInput = document.getElementById('answer-input');
+        const resultMessage = document.getElementById('result-message');
+        const nextButton = document.getElementById('next-button');
+
+        let currentProblem = {};
 
         // 九九表を生成
         function createTable() {
@@ -91,14 +146,59 @@
                 for (let j = 1; j <= 9; j++) {
                     const cell = document.createElement('div');
                     cell.className = 'grid-cell text-gray-700';
-                    cell.textContent = i * j;
+                    cell.textContent = `${i} × ${j}`;
+                    cell.dataset.answer = i * j;
+                    cell.addEventListener('click', () => {
+                        cell.textContent = cell.dataset.answer;
+                        cell.style.backgroundColor = '#dbeafe';
+                        setTimeout(() => {
+                            cell.textContent = `${i} × ${j}`;
+                            cell.style.backgroundColor = '#f8fafc';
+                        }, 1000);
+                    });
                     tableContainer.appendChild(cell);
                 }
             }
         }
 
+        // 練習問題の生成
+        function generateProblem() {
+            const num1 = Math.floor(Math.random() * 9) + 1;
+            const num2 = Math.floor(Math.random() * 9) + 1;
+            currentProblem = { num1, num2, answer: num1 * num2 };
+            problemDisplay.textContent = `${num1} × ${num2} = ?`;
+            answerInput.value = '';
+            resultMessage.textContent = '';
+            answerInput.focus();
+        }
+
+        // 回答のチェック
+        function checkAnswer() {
+            const userAnswer = parseInt(answerInput.value, 10);
+            if (userAnswer === currentProblem.answer) {
+                resultMessage.textContent = '正解！';
+                resultMessage.className = 'result-message correct';
+            } else {
+                resultMessage.textContent = `残念。正解は ${currentProblem.answer} です。`;
+                resultMessage.className = 'result-message incorrect';
+            }
+        }
+
+        // エンターキーで回答チェック
+        window.handleKeyPress = (e) => {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        };
+
+        // 次の問題ボタン
+        nextButton.addEventListener('click', () => {
+            generateProblem();
+        });
+
         // サイト起動時の初期化
         createTable();
+        generateProblem();
     });
 </script>
 
